@@ -1,0 +1,90 @@
+/* ============================================================
+   SUPER BIMO - gaya halaman (layar penuh, pixel-crisp)
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: #0b0d1a;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
+}
+
+#game-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #000;
+}
+
+/* ---------- tombol sentuh ---------- */
+#touch-controls { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+#touch-controls.hidden { display: none; }
+
+.tbtn {
+  position: absolute;
+  bottom: 26px;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.tbtn.active { background: rgba(255, 255, 255, 0.4); }
+
+#btn-left  { left: 22px; }
+#btn-right { left: 116px; }
+#btn-jump  {
+  right: 26px;
+  width: 96px;
+  height: 96px;
+  font-size: 38px;
+  background: rgba(67, 170, 63, 0.35);
+  border-color: rgba(123, 241, 168, 0.6);
+}
+
+/* ---------- tombol utilitas ---------- */
+.ubtn {
+  position: fixed;
+  top: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#btn-mute { right: 12px; }
+#btn-fs   { right: 60px; }
+#btn-mute.off { opacity: 0.4; text-decoration: line-through; }

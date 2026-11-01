@@ -1,0 +1,29 @@
+{
+  "name": "super-bimo",
+  "version": "1.0.0",
+  "description": "Super Bimo - Game platformer klasik original untuk Android & Web (Capacitor)",
+  "main": "index.js",
+  "scripts": {
+    "serve": "npx serve www",
+    "android:setup": "npx cap add android",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android",
+    "apk": "cd android && ./gradlew assembleDebug"
+  },
+  "keywords": [
+    "game",
+    "platformer",
+    "android",
+    "capacitor",
+    "html5"
+  ],
+  "author": "Super Bimo Team",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/core": "^6.2.1"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1"
+  }
+}
