@@ -1,5 +1,15 @@
+# Dependensi Node
 node_modules/
+
+# Folder android/ di-generate otomatis oleh `npx cap add android` saat build CI
 android/
-*.apk
-www/audio/
-www/quran.js
+
+# File sistem & log
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
