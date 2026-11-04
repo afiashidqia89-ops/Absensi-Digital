@@ -1,0 +1,12 @@
+{
+  "appId": "id.web.absensiwajah.app",
+  "appName": "Absensi Wajah",
+  "webDir": "mobile-www",
+  "server": {
+    "url": "https://GANTI-DENGAN-URL-VERCEL.vercel.app",
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

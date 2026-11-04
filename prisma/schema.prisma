@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MASTER DATA KARYAWAN
+// ─────────────────────────────────────────────────────────────
+model Karyawan {
+  id          String    @id @default(uuid())
+  nik         String    @unique // Nomor Induk Karyawan
+  nama        String
+  jabatan     String
+  departemen  String
+  telepon     String?
+  aktif       Boolean   @default(true)
+  // Data wajah (database wajah di web)
+  terdaftarWajah Boolean @default(false)
+  dataWajah   DataWajah?
+  absensi     Absensi[]
+  absensiLog  AbsensiLog[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Hasil pendaftaran wajah karyawan — diupload ke web sebagai database
+model DataWajah {
+  id          String   @id @default(uuid())
+  karyawanId  String   @unique
+  karyawan    Karyawan @relation(fields: [karyawanId], references: [id], onDelete: Cascade)
+  // Array of { descriptor: number[128], foto: path } — sampel pendaftaran
+  sampelJson  String
+  jumlahSampel Int     @default(0)
+  deviceId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Rekap absensi harian (1 baris per karyawan per tanggal)
+model Absensi {
+  id           String    @id @default(uuid())
+  karyawanId   String
+  karyawan     Karyawan  @relation(fields: [karyawanId], references: [id], onDelete: Cascade)
+  tanggal      String // YYYY-MM-DD zona WIB
+  jamMasuk     DateTime?
+  jamKeluar    DateTime?
+  fotoMasuk    String?
+  fotoKeluar   String?
+  // Skor keaslian wajah 0..1 (liveness) saat masuk / keluar
+  livenessMasuk  Float?
+  livenessKeluar Float?
+  status        String    @default("HADIR") // HADIR | TERLAMBAT
+  menitTerlambat Int      @default(0)
+  menitKerja    Int?      // durasi kerja dalam menit
+  deviceId      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([karyawanId, tanggal])
+  @@index([tanggal])
+}
+
+// Log transaksi mentah — hasil upload/sync dari HP (audit)
+model AbsensiLog {
+  id         String   @id @default(uuid())
+  karyawanId String
+  karyawan   Karyawan @relation(fields: [karyawanId], references: [id], onDelete: Cascade)
+  tipe       String // MASUK | KELUAR
+  waktu      DateTime
+  foto       String?
+  liveness   Float?
+  jarakWajah Float? // jarak descriptor vs database (verifikasi server)
+  deviceId   String?
+  offlineSync Boolean @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([karyawanId, waktu])
+}
+
+// Pengaturan jam kantor
+model Setting {
+  key   String @id
+  value String
+}
+
+// Log aktivitas sync perangkat
+model SyncLog {
+  id        String   @id @default(uuid())
+  deviceId  String
+  jumlah    Int
+  status    String // SUKSES | GAGAL
+  pesan     String?
+  createdAt DateTime @default(now())
+}

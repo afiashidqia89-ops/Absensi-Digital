@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Absensi Wajah</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        background: #0f172a;
+        color: #e2e8f0;
+        font-family: system-ui, -apple-system, sans-serif;
+        text-align: center;
+        padding: 24px;
+      }
+      .box {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+        background: #059669;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        box-shadow: 0 10px 30px rgba(5, 150, 105, 0.4);
+      }
+      h1 { font-size: 20px; margin: 0; }
+      p { font-size: 13px; color: #94a3b8; margin: 0; max-width: 320px; }
+      .tunggu { animation: kedip 1.2s ease-in-out infinite; }
+      @keyframes kedip { 0%, 100% { opacity: 1 } 50% { opacity: 0.35 } }
+    </style>
+  </head>
+  <body>
+    <div class="box">🧑‍💼</div>
+    <h1>Absensi Wajah</h1>
+    <p class="tunggu">Menghubungkan ke server absensi…</p>
+    <p>
+      Jika halaman ini muncul terus, periksa koneksi internet atau pastikan
+      <code>capacitor.config.json → server.url</code> sudah diisi dengan URL Vercel aplikasi Anda.
+    </p>
+  </body>
+</html>
