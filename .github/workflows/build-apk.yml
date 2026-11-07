@@ -18,11 +18,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Setup Java 17 (Temurin)
+      - name: Setup Java 21 (Temurin)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Terima lisensi Android SDK
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
@@ -49,7 +49,15 @@ jobs:
 
       - name: Build APK (debug)
         working-directory: android
-        run: bash gradlew assembleDebug --no-daemon --stacktrace
+        run: |
+          bash gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build-log.txt
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo ""
+            echo "==================== PENYEBAB GAGAL ===================="
+            grep -B 2 -A 20 "What went wrong" build-log.txt || true
+            echo "======================================================="
+            exit 1
+          fi
         env:
           GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m"
 
