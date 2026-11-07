@@ -30,6 +30,9 @@ jobs:
       - name: Install dependensi
         run: npm install
 
+      - name: Install Capacitor (CLI, core, android)
+        run: npm install @capacitor/cli @capacitor/core @capacitor/android
+
       - name: Build web (opsional - tidak menghalangi build APK)
         run: npm run build
         continue-on-error: true
