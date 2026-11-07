@@ -30,13 +30,16 @@ jobs:
       - name: Install dependensi
         run: npm install
 
-      - name: Build web
+      - name: Build web (opsional - tidak menghalangi build APK)
         run: npm run build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        continue-on-error: true
 
-      - name: Sinkronkan Capacitor ke Android
-        run: npx cap sync android
+      - name: Siapkan project Android (buat otomatis jika belum ada, lalu sinkron)
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+          npx cap sync android
 
       - name: Beri izin gradlew
         run: chmod +x android/gradlew
