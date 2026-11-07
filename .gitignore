@@ -66,4 +66,4 @@ android/.gradle/
 android/local.properties
 android/.idea/
 *.keystore
-*.jks
+*.jks.env
