@@ -1,17 +1,13 @@
-name: Build APK Absensi
+name: Build APK
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - "android/**"
-      - "capacitor.config.json"
-      - "mobile-www/**"
-      - ".github/workflows/build-apk.yml"
+  workflow_dispatch:
 
 jobs:
   apk:
+    name: Build APK (debug)
     runs-on: ubuntu-latest
     steps:
       - name: Ambil kode
@@ -20,38 +16,39 @@ jobs:
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Setup Java 17 (Temurin)
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Terima lisensi Android SDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
       - name: Install dependensi
-        run: npm install --no-audit --no-fund
+        run: npm install
 
-      - name: Pastikan paket Capacitor terpasang
-        run: npm install --no-audit --no-fund @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
+      - name: Build web
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Buat project Android bila belum ada
-        run: test -d android || npx cap add android
-
-      - name: Pastikan izin kamera di AndroidManifest
-        run: |
-          M=android/app/src/main/AndroidManifest.xml
-          grep -q "android.permission.CAMERA" "$M" || sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />#' "$M"
-          grep -n "uses-permission" "$M"
-
-      - name: Sinkronkan Capacitor
+      - name: Sinkronkan Capacitor ke Android
         run: npx cap sync android
 
+      - name: Beri izin gradlew
+        run: chmod +x android/gradlew
+
       - name: Build APK (debug)
-        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+        working-directory: android
+        run: bash gradlew assembleDebug --no-daemon --stacktrace
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m"
 
       - name: Unggah APK sebagai artefak
         uses: actions/upload-artifact@v4
         with:
-          name: absensi-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+          name: absensi-apk-debug
+          path: android/app/build/outputs/apk/debug/*.apk
