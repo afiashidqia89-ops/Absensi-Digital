@@ -7,7 +7,7 @@ on:
 
 env:
   # >>> GANTI BARIS DI BAWAH INI dengan URL Vercel Anda (yang Anda buka di Chrome) <<<
-  VERCEL_URL: https://GANTI-URL-ANDA.vercel.app
+  VERCEL_URL:https://absensi-digital-rouge.vercel.app
 
 jobs:
   apk:
@@ -74,7 +74,7 @@ jobs:
           grep -q "android.permission.CAMERA" $M || \
             sed -i 's#</manifest>#    <uses-permission android:name="android.permission.CAMERA" />\n</manifest>#' $M
 
-      - name: Build APK (debug)
+      - name: MyAbsen
         working-directory: android
         run: |
           bash gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build-log.txt
