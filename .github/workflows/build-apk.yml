@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  # >>> GANTI BARIS DI BAWAH INI dengan URL Vercel Anda (yang Anda buka di Chrome) <<<
+  VERCEL_URL: https://GANTI-URL-ANDA.vercel.app
+
 jobs:
   apk:
     name: Build APK (debug)
@@ -39,7 +43,7 @@ jobs:
         run: npm run build
         continue-on-error: true
 
-      - name: Buat project Android baru dari nol (paling andal)
+      - name: Buat project Android baru dari nol
         run: |
           rm -rf android
           if ! npx cap add android; then
@@ -50,6 +54,25 @@ jobs:
             npx cap add android
           fi
           npx cap sync android
+
+      - name: Arahkan APK langsung ke situs Vercel
+        run: |
+          node -e "
+            const fs = require('fs');
+            const p = 'android/app/src/main/assets/capacitor.config.json';
+            const c = JSON.parse(fs.readFileSync(p, 'utf8'));
+            c.server = Object.assign({}, c.server || {}, { url: '$VERCEL_URL' });
+            fs.writeFileSync(p, JSON.stringify(c, null, 2));
+            console.log('server.url =', c.server.url);
+          "
+
+      - name: Izinkan kamera di AndroidManifest (registrasi wajah & liveness)
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          grep -q "android.permission.CAMERA" $M || \
+            sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />#' $M
+          grep -q "android.permission.CAMERA" $M || \
+            sed -i 's#</manifest>#    <uses-permission android:name="android.permission.CAMERA" />\n</manifest>#' $M
 
       - name: Build APK (debug)
         working-directory: android
