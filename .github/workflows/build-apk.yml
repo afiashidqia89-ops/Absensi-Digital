@@ -1,4 +1,4 @@
-name: Build APK
+name: Absen APK
 
 on:
   push:
@@ -6,14 +6,14 @@ on:
   workflow_dispatch:
 
 env:
-  # >>> GANTI: nama aplikasi yang tampil di HP <<<
-  APP_NAME: Absensi Digital
+  # >>> Nama aplikasi yang tampil di HP <<<
+  APP_NAME: MyAbsen
   # >>> GANTI: URL Vercel Anda (yang Anda buka di Chrome) <<<
-  VERCEL_URL: https://absensi-digital-rouge.vercel.app/
+  VERCEL_URL: https://absensi-digital-rouge.vercel.app
 
 jobs:
   apk:
-    name: MyAbsen
+    name: Build APK (debug)
     runs-on: ubuntu-latest
     steps:
       - name: Ambil kode
@@ -51,8 +51,8 @@ jobs:
           if ! npx cap add android; then
             rm -f capacitor.config.ts capacitor.config.json
             mkdir -p www
-            printf '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Absensi Digital</title></head><body><h1>Absensi Digital</h1></body></html>' > www/index.html
-            npx cap init "Absensi Digital" "com.absensi.digital" --web-dir www
+            printf '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MyAbsen</title></head><body><h1>MyAbsen</h1></body></html>' > www/index.html
+            npx cap init "MyAbsen" "com.absensi.digital" --web-dir www
             npx cap add android
           fi
           npx cap sync android
@@ -66,6 +66,7 @@ jobs:
 
       - name: Terapkan logo kustom (ikon & splash)
         run: |
+          mkdir -p assets
           LOGO=""
           for p in assets/logo.png assets/icon.png icon.png logo.png public/logo.png public/icon.png public/icon-512.png public/icons/icon-512.png; do
             [ -f "$p" ] && LOGO="$p" && break
@@ -116,7 +117,7 @@ jobs:
           grep -q "android.permission.CAMERA" $M || \
             sed -i 's#</manifest>#    <uses-permission android:name="android.permission.CAMERA" />\n</manifest>#' $M
 
-      - name: MyAbsen
+      - name: Build APK (debug)
         working-directory: android
         run: |
           bash gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build-log.txt
@@ -137,6 +138,7 @@ jobs:
         with:
           name: log-build-gagal
           path: android/build-log.txt
+          if-no-files-found: ignore
 
       - name: Unggah APK sebagai artefak
         uses: actions/upload-artifact@v4
