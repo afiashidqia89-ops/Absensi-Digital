@@ -1,4 +1,4 @@
-name: Build APK
+name: Absen Yuk
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
 
 jobs:
   apk:
-    name: Build APK (debug)
+    name: Absen Yuk
     runs-on: ubuntu-latest
     steps:
       - name: Ambil kode
@@ -99,5 +99,5 @@ jobs:
       - name: Unggah APK sebagai artefak
         uses: actions/upload-artifact@v4
         with:
-          name: absensi-apk-debug
+          name: Absen Yuk
           path: android/app/build/outputs/apk/debug/*.apk
