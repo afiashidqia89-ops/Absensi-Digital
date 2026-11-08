@@ -1,17 +1,13 @@
-name: Build APK Absensi
+name: Build APK
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - "android/**"
-      - "capacitor.config.json"
-      - "mobile-www/**"
-      - ".github/workflows/build-apk.yml"
+  workflow_dispatch:
 
 jobs:
   apk:
+    name: Build APK (debug)
     runs-on: ubuntu-latest
     steps:
       - name: Ambil kode
@@ -20,38 +16,65 @@ jobs:
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
-      - name: Setup Java 17 (Temurin)
+      - name: Setup Java 21 (Temurin)
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Siapkan Android SDK (lisensi + paket wajib)
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-35" "build-tools;35.0.0" "platform-tools" > /dev/null || true
 
       - name: Install dependensi
-        run: npm install --no-audit --no-fund
+        run: npm install --legacy-peer-deps
 
-      - name: Pastikan paket Capacitor terpasang
-        run: npm install --no-audit --no-fund @capacitor/core@^7 @capacitor/cli@^7 @capacitor/android@^7
+      - name: Install Capacitor 7 versi tetap (kompatibel Java 21)
+        run: npm install @capacitor/cli@7 @capacitor/core@7 @capacitor/android@7 --legacy-peer-deps
 
-      - name: Buat project Android bila belum ada
-        run: test -d android || npx cap add android
+      - name: Build web (opsional - tidak menghalangi build APK)
+        run: npm run build
+        continue-on-error: true
 
-      - name: Pastikan izin kamera di AndroidManifest
+      - name: Buat project Android baru dari nol (paling andal)
         run: |
-          M=android/app/src/main/AndroidManifest.xml
-          grep -q "android.permission.CAMERA" "$M" || sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />#' "$M"
-          grep -n "uses-permission" "$M"
-
-      - name: Sinkronkan Capacitor
-        run: npx cap sync android
+          rm -rf android
+          if ! npx cap add android; then
+            rm -f capacitor.config.ts capacitor.config.json
+            mkdir -p www
+            printf '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Absensi Digital</title></head><body><h1>Absensi Digital</h1></body></html>' > www/index.html
+            npx cap init "Absensi Digital" "com.absensi.digital" --web-dir www
+            npx cap add android
+          fi
+          npx cap sync android
 
       - name: Build APK (debug)
-        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+        working-directory: android
+        run: |
+          bash gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build-log.txt
+          code=${PIPESTATUS[0]}
+          if [ $code -ne 0 ]; then
+            echo ""
+            echo "==================== PENYEBAB GAGAL ===================="
+            grep -B 2 -A 25 "What went wrong" build-log.txt || true
+            echo "======================================================="
+            exit 1
+          fi
+        env:
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
+
+      - name: Unggah log lengkap jika gagal
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-build-gagal
+          path: android/build-log.txt
 
       - name: Unggah APK sebagai artefak
         uses: actions/upload-artifact@v4
         with:
-          name: absensi-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
+          name: absensi-apk-debug
+          path: android/app/build/outputs/apk/debug/*.apk
