@@ -1,4 +1,4 @@
-name: Absen Yuk
+name: Build APK
 
 on:
   push:
@@ -6,12 +6,14 @@ on:
   workflow_dispatch:
 
 env:
-  # >>> GANTI BARIS DI BAWAH INI dengan URL Vercel Anda (yang Anda buka di Chrome) <<<
-  VERCEL_URL:https://absensi-digital-rouge.vercel.app
+  # >>> GANTI: nama aplikasi yang tampil di HP <<<
+  APP_NAME: Absensi Digital
+  # >>> GANTI: URL Vercel Anda (yang Anda buka di Chrome) <<<
+  VERCEL_URL: https://absensi-digital-rouge.vercel.app/
 
 jobs:
   apk:
-    name: Absen Yuk
+    name: MyAbsen
     runs-on: ubuntu-latest
     steps:
       - name: Ambil kode
@@ -54,6 +56,46 @@ jobs:
             npx cap add android
           fi
           npx cap sync android
+
+      - name: Ganti nama aplikasi
+        run: |
+          S=android/app/src/main/res/values/strings.xml
+          sed -i "s#<string name=\"app_name\">.*</string>#<string name=\"app_name\">$APP_NAME</string>#" $S
+          sed -i "s#<string name=\"title_activity_main\">.*</string>#<string name=\"title_activity_main\">$APP_NAME</string>#" $S
+          echo "Nama aplikasi: $APP_NAME"
+
+      - name: Terapkan logo kustom (ikon & splash)
+        run: |
+          LOGO=""
+          for p in assets/logo.png assets/icon.png icon.png logo.png public/logo.png public/icon.png public/icon-512.png public/icons/icon-512.png; do
+            [ -f "$p" ] && LOGO="$p" && break
+          done
+          if [ -z "$LOGO" ]; then
+            for p in assets/*.png assets/*.jpg icon/*.* icons/*.*; do
+              case "$p" in *splash*) continue;; esac
+              [ -f "$p" ] && LOGO="$p" && break
+            done
+          fi
+          SPLASH=""
+          for p in assets/splash.png splash.png assets/splash.jpg; do
+            [ -f "$p" ] && SPLASH="$p" && break
+          done
+          echo "Logo ditemukan: ${LOGO:-TIDAK ADA} | Splash: ${SPLASH:-otomatis dari logo}"
+          if [ -n "$LOGO" ]; then
+            cp "$LOGO" assets/icon-only.png
+            cp "$LOGO" assets/icon-foreground.png
+            convert -size 1024x1024 xc:"#FFFFFF" assets/icon-background.png
+            if [ -n "$SPLASH" ]; then
+              cp "$SPLASH" assets/splash.png
+            else
+              convert -size 2732x2732 xc:"#FFFFFF" \( "$LOGO" -resize 1200x1200 \) -gravity center -composite assets/splash.png
+            fi
+            cp assets/splash.png assets/splash-dark.png
+            npm install --save-dev @capacitor/assets --legacy-peer-deps
+            npx capacitor-assets generate --android --iconBackgroundColor "#FFFFFF" --splashBackgroundColor "#FFFFFF"
+          else
+            echo "TIDAK ADA LOGO - pakai ikon bawaan Capacitor"
+          fi
 
       - name: Arahkan APK langsung ke situs Vercel
         run: |
@@ -99,5 +141,5 @@ jobs:
       - name: Unggah APK sebagai artefak
         uses: actions/upload-artifact@v4
         with:
-          name: Absen Yuk
+          name: MyAbsen
           path: android/app/build/outputs/apk/debug/*.apk
